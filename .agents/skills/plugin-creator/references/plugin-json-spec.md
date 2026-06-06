@@ -104,7 +104,7 @@
 
 ```json
 {
-  "name": "openai-curated",
+  "name": "codexplusplus-openai-curated",
   "interface": {
     "displayName": "ChatGPT Official"
   },
