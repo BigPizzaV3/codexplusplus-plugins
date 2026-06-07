@@ -104,7 +104,7 @@ export async function loadBudgetBaseline() {
 
   const home = os.homedir();
   const skillRoot = path.join(home, ".codex", "skills");
-  const curatedPluginRoot = path.join(home, ".codex", "plugins", "cache", "codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-openai-curated");
+  const curatedPluginRoot = path.join(home, ".codex", "plugins", "cache", "codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-openai-curated");
   const tempPluginRoot = path.join(home, ".codex", ".tmp", "plugins", "plugins");
 
   const skillSamples = await collectSkillSamples(skillRoot);
