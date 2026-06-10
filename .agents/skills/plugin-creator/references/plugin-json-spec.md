@@ -104,7 +104,7 @@
 
 ```json
 {
-  "name": "codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-openai-curated",
+  "name": "codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-openai-curated",
   "interface": {
     "displayName": "ChatGPT Official"
   },
