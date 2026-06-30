@@ -42,16 +42,25 @@ jobs:
         run: |
           python - <<'PY'
           import os
+          import re
           from pathlib import Path
 
           old = os.environ["OLD_VALUE"]
           new = os.environ["NEW_VALUE"]
           skipped_dirs = {".git", ".github"}
+          skipped_paths = {Path("scripts/sync-upstream-and-rename.ps1")}
+
+          rename_pattern = None
+          if new != old and new.endswith(old):
+              prefix = new[: -len(old)]
+              rename_pattern = re.compile(rf"(?:{re.escape(prefix)})*{re.escape(old)}")
 
           for path in Path(".").rglob("*"):
               if not path.is_file():
                   continue
               if any(part in skipped_dirs for part in path.parts):
+                  continue
+              if path in skipped_paths:
                   continue
 
               data = path.read_bytes()
@@ -63,7 +72,10 @@ jobs:
               except UnicodeDecodeError:
                   continue
 
-              updated = text.replace(old, new)
+              if rename_pattern:
+                  updated = rename_pattern.sub(new, text)
+              else:
+                  updated = text.replace(old, new)
               if updated != text:
                   path.write_text(updated, encoding="utf-8")
           PY

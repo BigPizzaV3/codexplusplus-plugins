@@ -1,8 +1,8 @@
 param(
     [string]$Upstream = "https://github.com/openai/plugins.git",
     [string]$Branch = "main",
-    [string]$OldValue = "codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-openai-curated",
-    [string]$NewValue = "codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-codexplusplus-openai-curated",
+    [string]$OldValue = "openai-curated",
+    [string]$NewValue = "codexplusplus-openai-curated",
     [switch]$Push
 )
 
@@ -20,8 +20,20 @@ git fetch upstream $Branch --prune
 git checkout $Branch
 git merge --no-edit -X theirs "upstream/$Branch"
 
+$renamePattern = $null
+if (($NewValue -ne $OldValue) -and $NewValue.EndsWith($OldValue)) {
+    $prefix = $NewValue.Substring(0, $NewValue.Length - $OldValue.Length)
+    $renamePattern = "(?:{0})*{1}" -f [regex]::Escape($prefix), [regex]::Escape($OldValue)
+}
+
 $skipDirs = @(".git", ".github")
+$skipFiles = @([IO.Path]::GetFullPath((Join-Path (Get-Location).Path "scripts/sync-upstream-and-rename.ps1")))
 Get-ChildItem -Recurse -File | Where-Object {
+    $fullName = [IO.Path]::GetFullPath($_.FullName)
+    if ($skipFiles -contains $fullName) {
+        return $false
+    }
+
     $parts = $_.FullName.Split([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
     foreach ($skip in $skipDirs) {
         if ($parts -contains $skip) {
@@ -39,7 +51,11 @@ Get-ChildItem -Recurse -File | Where-Object {
         }
 
         if ($null -ne $text) {
-            $updated = $text.Replace($OldValue, $NewValue)
+            if ($null -ne $renamePattern) {
+                $updated = [regex]::Replace($text, $renamePattern, $NewValue)
+            } else {
+                $updated = $text.Replace($OldValue, $NewValue)
+            }
             if ($updated -ne $text) {
                 [IO.File]::WriteAllText($_.FullName, $updated, [Text.Encoding]::UTF8)
             }
